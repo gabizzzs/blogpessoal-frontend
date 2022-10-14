@@ -5,13 +5,14 @@ import { api, login } from '../../services/Service';
 import UserLogin from '../../models/UserLogin';
 import './Login.css';
 import { useDispatch } from 'react-redux';
-import { addToken } from '../../store/tokens/actions';
+import { addId, addToken } from '../../store/tokens/actions';
 import { toast } from 'react-toastify';
 
 function Login() {
     let history = useNavigate();
     const dispatch = useDispatch();
     const [token, setToken] = useState('');
+
     const [userLogin, setUserLogin] = useState<UserLogin>(
         {
             id: 0,
@@ -22,6 +23,15 @@ function Login() {
             token: ''
         });
 
+    const [respUserLogin, setRespUserLogin] = useState<UserLogin>({
+        id: 0,
+        nome: '',
+        usuario: '',
+        senha: '',
+        foto:'',
+        token:'',
+    })
+
         function updatedModel(event: ChangeEvent<HTMLInputElement>) {
             setUserLogin({
                 ...userLogin,
@@ -29,17 +39,18 @@ function Login() {
             })
         }
 
-            useEffect(() => {
-                if(token !== '') {
-                    dispatch(addToken(token));
-                    history('/home')
-                }
-            }, [token])
+        useEffect(() => {
+            if(userLogin.usuario !== '' && userLogin.senha !== '' && userLogin.senha.length >= 8) {
+              setForm(true)
+            }
+          },[userLogin])
+
+        const [form, setForm] = useState(false)
 
         async function onSubmit(event: ChangeEvent<HTMLFormElement>) {
             event.preventDefault();
             try{
-               await login (`/usuarios/logar`, userLogin, setToken)
+               await login (`/usuarios/logar`, userLogin, setRespUserLogin)
 
                 toast.success('Usuário logado com sucesso!', {
                     position: "top-right",
@@ -64,6 +75,21 @@ function Login() {
                 });
             }
         }
+
+        useEffect(() => {
+            if (token !== '') {
+              dispatch(addToken(token))
+              history('/home');
+            }
+          }, [token]);
+        
+          useEffect(()=> {
+            if(respUserLogin.token !== ''){
+              dispatch(addToken(respUserLogin.token))
+              dispatch(addId(respUserLogin.id.toString()))
+              history('/home');
+            }
+          }, [respUserLogin.token])
 
     return(
         <Grid container direction='row' justifyContent='center' alignItems='center'>
